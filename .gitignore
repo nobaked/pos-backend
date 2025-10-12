@@ -1,0 +1,42 @@
+cat > /Users/nobuyukiakedo/myenv/Step4/POSApp/backend/.gitignore << 'EOF'
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual Environment
+.venv/
+venv/
+env/
+ENV/
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+logs/
+*.log
+
+# SSL Certificates
+certs/
+*.crt
+*.pem
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Others
+*.zip
+*.tar.gz
+EOF
