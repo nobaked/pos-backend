@@ -1,6 +1,8 @@
 from sqlalchemy import Column, Integer, String, TIMESTAMP, BigInteger, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from ..database import Base
+
 
 
 class Product(Base):
@@ -15,6 +17,7 @@ class Product(Base):
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
 
 
+
 class Transaction(Base):
     """取引テーブル"""
     __tablename__ = "transactions"
@@ -27,6 +30,10 @@ class Transaction(Base):
     TOTAL_AMT = Column(Integer, nullable=False, comment='合計金額（税込）')
     TTL_AMT_EX_TAX = Column(Integer, nullable=False, comment='合計金額（税抜）')
     created_at = Column(TIMESTAMP, server_default=func.now())
+    
+    # リレーションシップの追加
+    details = relationship("TransactionDetail", back_populates="transaction", cascade="all, delete-orphan")
+
 
 
 class TransactionDetail(Base):
@@ -46,3 +53,6 @@ class TransactionDetail(Base):
     PRD_PRICE = Column(Integer, nullable=False, comment='商品単価')
     TAX_CD = Column(String(2), nullable=False, comment='消費税区分')
     created_at = Column(TIMESTAMP, server_default=func.now())
+    
+    # リレーションシップの追加
+    transaction = relationship("Transaction", back_populates="details")

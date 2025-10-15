@@ -1,11 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import datetime
+import math
 from ..database import get_db
 from ..models.pos import Product, Transaction, TransactionDetail
 from ..schemas.pos import ProductResponse, PurchaseRequest, PurchaseResponse
 
+
 router = APIRouter()
+
 
 
 @router.get("/api/products/search/{barcode}", response_model=ProductResponse)
@@ -34,6 +37,7 @@ async def search_product(barcode: int, db: Session = Depends(get_db)):
     return product
 
 
+
 @router.get("/api/products", response_model=list[ProductResponse])
 async def list_products(
     skip: int = 0, 
@@ -55,6 +59,7 @@ async def list_products(
     return products
 
 
+
 @router.post("/api/purchase", response_model=PurchaseResponse)
 async def create_purchase(
     purchase: PurchaseRequest, 
@@ -74,7 +79,8 @@ async def create_purchase(
         HTTPException: 商品が見つからない、在庫不足などのエラー
     """
     try:
-        # 商品の存在確認
+        # 商品の存在確認と税抜合計の計算
+        ttl_amt_ex_tax = 0
         for item in purchase.items:
             product = db.query(Product).filter(Product.PRD_ID == item.PRD_ID).first()
             if not product:
@@ -82,11 +88,11 @@ async def create_purchase(
                     status_code=404,
                     detail=f"Product with ID {item.PRD_ID} not found"
                 )
+            # 税抜価格 × 数量を加算
+            ttl_amt_ex_tax += item.PRD_PRICE * item.quantity
         
-        # 合計金額計算
-        total_amt = sum(item.PRD_PRICE * item.quantity for item in purchase.items)
-        # 消費税10%として税抜金額を計算
-        ttl_amt_ex_tax = int(total_amt / 1.1)
+        # 税込金額計算（消費税10%、小数点以下切り捨て）
+        total_amt = math.floor(ttl_amt_ex_tax * 1.1)
         
         # 取引レコード作成
         transaction = Transaction(
